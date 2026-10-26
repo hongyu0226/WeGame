@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>解鎖禮物互動小遊戲</title>
+  <meta name="description" content="日系繪本風情侶專屬互動遊戲，刮刮樂揭曉獎品，挑戰專屬測驗立即解鎖！">
+
+  <!-- 手機加入主畫面專屬 App 圖標與 Web App 設定 -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="解鎖禮物大作戰">
+  <meta name="theme-color" content="#FFFCF6">
+
+  <!-- 引入 Google Fonts：粉圓體 (Huninn) 與 圓體 (Zen Maru Gothic) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- 背景漂浮手繪幾何裝飾 -->
+  <div class="bg-decorations" aria-hidden="true">
+    <svg class="bg-shape shape-heart-1" viewBox="0 0 24 24" fill="#F2A497">
+      <path
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+    <svg class="bg-shape shape-star-1" viewBox="0 0 24 24" fill="#F6D27A">
+      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+    </svg>
+    <svg class="bg-shape shape-circle-1" viewBox="0 0 24 24" fill="#A8D3E6">
+      <circle cx="12" cy="12" r="10" />
+    </svg>
+    <svg class="bg-shape shape-star-2" viewBox="0 0 24 24" fill="#B9DAA5">
+      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+    </svg>
+    <svg class="bg-shape shape-heart-2" viewBox="0 0 24 24" fill="#F2A497">
+      <path
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+  </div>
+
+  <!-- 彩花畫布 -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- 支援自訂背景音樂音檔 (若放入 bgm.mp3 於同目錄會優先播放) -->
+  <audio id="bgm-audio" loop preload="none">
+    <source src="bgm.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="app-container">
+
+    <!-- 背景音樂控制按鈕（位於主容器內部右上角，保證在任何螢幕尺寸下皆位於卡片框內） -->
+    <button id="btn-music-toggle" class="floating-music-btn" type="button" aria-label="切換背景音樂" title="點擊切換背景音樂">
+      <span class="music-note-icon">🎵</span>
+      <span class="music-wave-bars" aria-hidden="true">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </span>
+    </button>
+
+    <!-- ======================================================================
+         畫面 A：開場與遊戲說明 (Screen Intro)
+         ====================================================================== -->
+    <main id="screen-intro" class="screen active">
+      <div class="intro-card">
+        <div class="intro-tag">♡ FOR MY LOVE ♡</div>
+        <h1 class="intro-title">解鎖禮物大作戰！</h1>
+
+        <!-- 可愛禮物盒手繪插畫（支援點擊戳戳樂彩蛋互動） -->
+        <div class="intro-illustration" id="intro-gift-box-wrap" title="戳戳看禮物盒，會有小驚喜唷！">
+          <div id="gift-speech-bubble" class="gift-speech-bubble" aria-live="polite"></div>
+          <svg viewBox="0 0 160 160" class="intro-box-svg" id="intro-box-svg" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <rect x="25" y="65" width="110" height="75" rx="16" fill="#F2A497" stroke="#3E3A39" stroke-width="4" />
+            <!-- 緞帶直條 -->
+            <rect x="70" y="65" width="20" height="75" fill="#F6D27A" stroke="#3E3A39" stroke-width="4" />
+            <!-- 盒子蓋子 -->
+            <rect x="20" y="48" width="120" height="22" rx="11" fill="#FFF5F3" stroke="#3E3A39" stroke-width="4" />
+            <rect x="70" y="48" width="20" height="22" fill="#F6D27A" stroke="#3E3A39" stroke-width="4" />
+            <!-- 蝴蝶結手繪 -->
+            <path d="M78 48C62 25 38 34 50 48C62 60 76 50 80 48Z" fill="#F6D27A" stroke="#3E3A39" stroke-width="4"
+              stroke-linejoin="round" />
+            <path d="M82 48C98 25 122 34 110 48C98 60 84 50 80 48Z" fill="#F6D27A" stroke="#3E3A39" stroke-width="4"
+              stroke-linejoin="round" />
+            <circle cx="80" cy="48" r="8" fill="#F2A497" stroke="#3E3A39" stroke-width="4" />
+            <!-- 小愛心閃耀 -->
+            <path
+              d="M136 32C136 32 128 27 128 22C128 19 130 17 133 17C135 17 136 19 136 19C136 19 137 17 139 17C142 17 144 19 144 22C144 27 136 32 136 32Z"
+              fill="#F2A497" stroke="#3E3A39" stroke-width="2" />
+            <circle cx="28" cy="38" r="4" fill="#F6D27A" stroke="#3E3A39" stroke-width="2" />
+          </svg>
+        </div>
+
+        <div class="intro-desc-box">
+          <p>
+            刮開刮刮樂後，看刮到什麼禮物！接著，找到相同的禮物名稱，完成小小考驗，就可以獲得它囉！
+          </p>
+          <div class="intro-steps-list">
+            <div class="step-item">
+              <span class="step-num">1</span>
+              <span>先刮開手上的實體刮刮樂，確認刮到的禮物名稱。</span>
+            </div>
+            <div class="step-item">
+              <span class="step-num">2</span>
+              <span>點選對應的禮物卡片，即可進入專屬測驗。</span>
+            </div>
+            <div class="step-item">
+              <span class="step-num">3</span>
+              <span>每份禮物有 2 次作答機會，第一次答錯會有貼心提示喔！</span>
+            </div>
+            <div class="step-item">
+              <span class="step-num">4</span>
+              <span>成功解鎖後，可以獲得該禮物！</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-start-hunt" class="btn btn-primary" type="button">
+          開始尋寶
+        </button>
+      </div>
+    </main>
+
+    <!-- ======================================================================
+         畫面 B：六份禮物總覽 (Screen Collection)
+         ====================================================================== -->
+    <section id="screen-collection" class="screen">
+      <div class="collection-header">
+        <h2 class="collection-title">找到妳刮到的禮物吧！</h2>
+        <p class="collection-subtitle">刮開其中一個刮刮樂後，再點選相同的禮物開始挑戰</p>
+
+        <!-- 統計數據條（已解鎖與已完成分開統計） -->
+        <div class="stats-bar">
+          <div class="stat-chip stat-unlocked">
+            <span class="chip-icon">🎁</span>
+            <span>已成功解鎖：</span>
+            <span id="stat-unlocked-count" class="chip-count">0 / 6</span>
+          </div>
+          <div class="stat-chip">
+            <span class="chip-icon">🎯</span>
+            <span>已完成挑戰：</span>
+            <span id="stat-completed-count" class="chip-count">0 / 6</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 全部解鎖或全破時的慶祝橫幅 (畫面 G) -->
+      <div id="celebration-banner" class="celebration-banner">
+        <div class="banner-title">🎉 天啊！妳把六份禮物全部解鎖了！</div>
+        <p class="banner-desc">太厲害啦！快來找我領取專屬獎品吧！</p>
+        <button id="btn-open-secret-letter" class="btn btn-secret-letter" type="button">
+          💌 拆開男友的壓軸秘密情書
+        </button>
+      </div>
+
+      <!-- 六份禮物卡片容器（依照固定順序渲染） -->
+      <div id="gifts-grid" class="gifts-grid">
+        <!-- 由 app.js 動態注入 6 張卡片 -->
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         畫面 C：禮物專屬測驗 (Screen Quiz)
+         ====================================================================== -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-wrapper">
+        <div class="quiz-header">
+          <div class="quiz-target-info">
+            <div id="quiz-mini-icon" class="quiz-mini-icon"></div>
+            <div>
+              <div class="quiz-target-label">正在解鎖專屬禮物：</div>
+              <div id="quiz-target-name" class="quiz-target-name">禮物名稱</div>
+            </div>
+          </div>
+          <div id="quiz-attempts-badge" class="attempts-badge">
+            🎯 共有 <b>2</b> 次作答機會
+          </div>
+        </div>
+
+        <!-- 題目區塊（水色卡片） -->
+        <div class="question-box">
+          <span id="question-tag" class="question-tag">專屬測驗</span>
+          <div id="question-text" class="question-text">題目文字載入中...</div>
+        </div>
+
+        <!-- 四選一單選選項 -->
+        <div id="options-grid" class="options-grid">
+          <!-- 由 app.js 動態注入 4 個選項按鈕 -->
+        </div>
+
+        <div class="quiz-footer">
+          <button id="btn-back-to-collection-quiz" class="btn btn-outline" type="button">
+            ← 回到禮物清單
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         畫面 D：第一次答錯與提示 (Screen Hint)
+         ====================================================================== -->
+    <section id="screen-hint" class="screen">
+      <div class="hint-modal-card">
+        <div class="hint-icon-wrap">💡</div>
+        <h2 class="hint-title">差一點點！</h2>
+        <p class="hint-subtitle">
+          哎呀，再想一下嘛，我偷偷給妳一點線索。
+        </p>
+
+        <!-- 山吹黃提示卡片 -->
+        <div class="hint-content-box">
+          <div class="hint-box-header">
+            <span>✨ 專屬通關小線索</span>
+            <span id="hint-target-name">（禮物名）</span>
+          </div>
+          <div id="hint-text" class="hint-text">
+            提示文字載入中...
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+          <button id="btn-retry-quiz" class="btn btn-yellow" type="button">
+            再回答一次
+          </button>
+          <button id="btn-back-from-hint" class="btn btn-outline" type="button">
+            稍後挑戰・回到清單
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         畫面 E：答對並解鎖禮物 (Screen Unlock)
+         ====================================================================== -->
+    <section id="screen-unlock" class="screen">
+      <div class="unlock-modal-card">
+        <div class="unlock-badge-top">✨ UNLOCKED SUCCESS ✨</div>
+        <h2 id="unlock-title" class="unlock-title">不愧是我的寶！</h2>
+        <p id="unlock-message" class="unlock-message">妳成功解鎖這份禮物了！</p>
+
+        <div class="unlocked-gift-display">
+          <div id="unlock-gift-icon" class="unlocked-gift-icon"></div>
+          <div id="unlock-gift-name" class="unlocked-gift-name">禮物名稱</div>
+          <div class="unlocked-tag-success">✓ 獎品已解鎖・快找我兌現</div>
+        </div>
+
+        <button id="btn-view-voucher" class="btn btn-yellow" type="button" style="width: 100%; margin-bottom: 14px;">
+          🎟️ 查看專屬男友心意兌換券
+        </button>
+
+        <button id="btn-back-from-unlock" class="btn btn-primary" type="button">
+          回到禮物清單
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         畫面 F：第二次仍答錯 (Screen Failed)
+         ====================================================================== -->
+    <section id="screen-failed" class="screen">
+      <div class="failed-modal-card">
+        <div class="failed-icon-wrap">💡</div>
+        <h2 class="failed-title">公布正確答案！</h2>
+        <p class="failed-subtitle">
+          哈哈，這題有點難對不對！別灰心，看完下方的正解說明後，再測驗一次把這份禮物解鎖吧！
+        </p>
+
+        <div class="reveal-answer-box">
+          <div class="reveal-label">
+            <span>💡 正確答案與我的小備註</span>
+            <span id="failed-target-name"></span>
+          </div>
+          <div id="failed-answer-explanation" class="reveal-answer-text">
+            正確答案說明...
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+          <button id="btn-retry-from-failed" class="btn btn-yellow" type="button">
+            看完答案，再測驗一次！
+          </button>
+          <button id="btn-back-from-failed" class="btn btn-outline" type="button">
+            稍後挑戰・回到清單
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 頁尾：測試專用重置進度按鈕 -->
+    <footer class="admin-footer">
+      <button id="btn-reset-progress" class="btn-reset-ghost" type="button" title="清除所有挑戰進度與解鎖紀錄（測試專用）">
+        重新開始測驗（重置紀錄）
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- 全螢幕點擊冒愛心與星星粒子容器 (Feature 2) -->
+  <div id="tap-particle-container" class="tap-particle-container" aria-hidden="true"></div>
+
+  <!-- ======================================================================
+       彈窗 1：男友專屬心意兌換券 / 拍立得獎卡 (Feature 1)
+       ====================================================================== -->
+  <div id="modal-voucher" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="voucher-title">
+    <div class="voucher-wrapper">
+      <div class="voucher-ticket">
+        <!-- 上方日系紙膠帶固定裝飾 -->
+        <div class="voucher-top-tape">SPECIAL LOVE PASS</div>
+
+        <div class="voucher-header">
+          <span class="voucher-sub">OFFICIAL BOYFRIEND VOUCHER</span>
+          <h3 id="voucher-title" class="voucher-title">專屬男友心意兌換券</h3>
+          <span class="voucher-guarantee-badge">✓ 男友正式授權・終身兌現保證</span>
+        </div>
+
+        <div class="voucher-body">
+          <div id="voucher-gift-icon" class="voucher-gift-icon"></div>
+          <div id="voucher-gift-name" class="voucher-gift-name">禮物名稱</div>
+
+          <div class="voucher-divider">
+            <span class="voucher-cut-notch notch-left"></span>
+            <span class="voucher-cut-line"></span>
+            <span class="voucher-cut-notch notch-right"></span>
+          </div>
+
+          <div id="voucher-pledge-text" class="voucher-pledge-text">
+            憑此券可隨時隨地向男友索取兌現，無使用期限，不可推託！
+          </div>
+
+          <div class="voucher-meta-grid">
+            <div class="meta-item">
+              <span class="meta-label">發行日期</span>
+              <span class="meta-val">即日起・永久有效</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">認證編號</span>
+              <span id="voucher-serial" class="meta-val">NO. 20261123-520</span>
+            </div>
+          </div>
+
+          <!-- 男友專屬圓形鋼印印章 -->
+          <div class="voucher-seal-stamp">
+            <div class="seal-inner">
+              <span class="seal-text-top">男友承諾</span>
+              <span class="seal-star">★ ★ ★</span>
+              <span class="seal-text-bottom">終生包辦</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="voucher-footer">
+          <div class="voucher-barcode-area">
+            <div class="fake-barcode">|||| | ||||| || |||||| | |||| || |||</div>
+            <div class="barcode-num">AUTHORIZED BY YOUR LOVING BOYFRIEND</div>
+          </div>
+          <p class="voucher-screenshot-tip">📸 貼心小提醒：手機直接螢幕截圖，即可永久留存認證唷！</p>
+        </div>
+      </div>
+
+      <button id="btn-done-voucher" class="btn btn-primary btn-voucher-confirm" type="button">
+        收下心意並返回
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       彈窗 2：六題全破終極大彩蛋・男友封蠟情書 (Feature 4)
+       ====================================================================== -->
+  <div id="modal-secret-letter" class="modal-overlay" role="dialog" aria-modal="true"
+    aria-labelledby="letter-modal-title">
+    <div class="secret-letter-card">
+
+      <!-- 階段一：未拆封的典雅火漆封蠟信封 -->
+      <div id="envelope-sealed-view" class="envelope-sealed-view">
+        <div class="envelope-top-badge">SECRET LOVE LETTER</div>
+        <h3 id="letter-modal-title" class="envelope-title">給最親愛的寶貝</h3>
+        <p class="envelope-sub">當妳解鎖所有難題時，這封信才終於開啟...</p>
+
+        <div class="envelope-graphic">
+          <div class="envelope-flap"></div>
+          <div class="envelope-body">
+            <!-- 擬真火漆封蠟按鈕 -->
+            <div class="wax-seal-container" id="wax-seal-button" role="button" tabindex="0" title="點擊拆開火漆封蠟">
+              <div class="wax-seal-ripple"></div>
+              <div class="wax-seal-core">
+                <span class="wax-seal-initials">H & Y</span>
+                <span class="wax-seal-heart">♡</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="envelope-tap-prompt">👆 輕觸紅色封蠟，拆開封存的真心話</p>
+      </div>
+
+      <!-- 階段二：展開的復古手寫羊皮紙深情告白信 -->
+      <div id="parchment-letter-view" class="parchment-letter-view" style="display: none;">
+        <div class="parchment-header">
+          <div class="parchment-tag">♡ 2022.11.23 ~ 永遠 ♡</div>
+          <h3 class="parchment-title">寫給最親愛的寶 💌</h3>
+        </div>
+        <div class="parchment-scrollable-content">
+          <p class="letter-para">親愛的𠦄：</p>
+          <p class="letter-para">
+            恭喜妳！靠著專屬我們的小默契，把六份禮物全部都解鎖啦！看妳認真作答的模樣，真的超級可愛～
+          </p>
+          <p class="letter-para">
+            回想在<b>員山公園</b>牽起妳手的那一天，直到今天已經默默走過了 <b>1,445 天</b>。這段日子裡，我們一起慶祝了四次週年、好多次生日，走過好多街角，也嚐遍了無數美食。
+          </p>
+          <p class="letter-para">
+            這次準備的小遊戲、刮刮樂，還有所有的禮物——不管是深情的親吻、舒服的洗頭吹髮按摩、妳最愛的雨琦泡泡瑪特、專屬的 a-We 防摔手機殼，還是 NT$3,600 紅包發財金，每一份都是我想讓妳開心的心意。
+          </p>
+          <p class="letter-para">
+            謝謝妳一直以來給我的溫柔與陪伴。未來的每一天，我依然會當妳最堅強的依靠，陪妳走過每一次喜怒哀樂，繼續把妳寵得像全世界最幸福的公主。
+          </p>
+          <div class="letter-sign-off">
+            <p>永遠愛妳的男友♡</p>
+            <p class="letter-date">2026 年・愛妳一生一世</p>
+          </div>
+        </div>
+        <div class="parchment-actions">
+          <button id="btn-finish-letter" class="btn btn-primary" type="button" style="width: 100%;">
+            ❤️ 永遠珍藏這份承諾
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 引入題目資料與遊戲程式 -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
