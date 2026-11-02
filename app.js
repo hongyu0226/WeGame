@@ -130,13 +130,13 @@
       return this.enabled;
     }
 
-    // 啟動背景音樂（零延遲）
+    // 啟動背景音樂（優先播放自訂音樂，若無則秒播純程式八音盒）
     startBGM() {
       if (!this.bgmEnabled || this.bgmPlaying) return;
       this.init();
 
-      // 若有成功載入的自訂音檔則播放自訂音檔；否則零延遲立即啟動純程式 Web Audio 八音盒
-      if (this.hasCustomBgm && this.bgmAudioEl) {
+      // 若有自訂音檔（例如放入 bgm.mp3），優先播放自訂音檔
+      if (this.bgmAudioEl) {
         this.bgmAudioEl.volume = 0.35;
         const playPromise = this.bgmAudioEl.play();
         if (playPromise !== undefined) {
@@ -147,13 +147,15 @@
               if (this.onBgmStatusChange) this.onBgmStatusChange(true);
             })
             .catch(() => {
+              // 若自訂音檔不存在（404）或無法載入，無縫切換為純程式 Web Audio 八音盒
+              this.isAudioElementPlaying = false;
               this.startProceduralBgm();
             });
           return;
         }
       }
 
-      // 預設直接秒播純程式合成八音盒（0 毫秒延遲，無需等待任何網路與音檔逾時）
+      // 預設直接秒播純程式合成八音盒（0 毫秒延遲）
       this.startProceduralBgm();
     }
 
