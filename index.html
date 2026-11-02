@@ -7,7 +7,8 @@
   <title>解鎖禮物互動小遊戲</title>
   <meta name="description" content="日系繪本風情侶專屬互動遊戲，刮刮樂揭曉獎品，挑戰專屬測驗立即解鎖！">
 
-  <!-- 手機加入主畫面專屬 App 圖標與 Web App 設定 -->
+  <!-- 防止 iOS / Safari 自動將日期與數字判定為電話或行事曆並套用藍色超連結字體 -->
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=2">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon.png?v=2">
@@ -16,10 +17,13 @@
   <meta name="apple-mobile-web-app-title" content="解鎖禮物大作戰">
   <meta name="theme-color" content="#FFFCF6">
 
-  <!-- 引入 Google Fonts：粉圓體 (Huninn) 與 圓體 (Zen Maru Gothic) -->
+  <!-- 引入手寫字體：Klee One (硬筆手寫體)、辰宇落雁體 (ChenYuluoyan)、英文手寫體 (Caveat) 與 圓體 (Zen Maru Gothic) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chenyuluoyan-thin@1.0.0/chenyuluoyan-thin.css">
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -47,11 +51,24 @@
     </svg>
   </div>
 
+  <!-- 手機聲音提示通知橫幅 (進站自動提醒) -->
+  <aside id="sound-notice-banner" class="sound-notice-banner" role="alert" aria-live="polite">
+    <div class="sound-notice-icon-wrap" aria-hidden="true">
+      <span class="sound-notice-icon">🔊</span>
+      <span class="sound-notice-pulse"></span>
+    </div>
+    <div class="sound-notice-content">
+      <div class="sound-notice-title">🎵 記得開聲音！</div>
+      <div class="sound-notice-desc">請先<strong>調高手機音量</strong>，再<strong>輕觸畫面任一處</strong>開始播放</div>
+    </div>
+    <button id="btn-sound-notice-close" class="sound-notice-close" type="button" aria-label="關閉提示">✕</button>
+  </aside>
+
   <!-- 彩花畫布 -->
   <canvas id="confetti-canvas"></canvas>
 
   <!-- 支援自訂背景音樂音檔 (若放入 bgm.mp3 於同目錄會優先播放) -->
-  <audio id="bgm-audio" loop preload="auto">
+  <audio id="bgm-audio" loop preload="auto" playsinline webkit-playsinline>
     <source src="bgm.mp3" type="audio/mpeg">
   </audio>
 
@@ -135,6 +152,12 @@
          ====================================================================== -->
     <section id="screen-collection" class="screen">
       <div class="collection-header">
+        <!-- 返回遊戲說明按鈕 -->
+        <div style="text-align:left; margin-bottom:8px;">
+          <button id="btn-back-to-intro" class="btn-back-intro" type="button">
+            ← 遊戲說明
+          </button>
+        </div>
         <h2 class="collection-title">找到妳刮到的禮物吧！</h2>
         <p class="collection-subtitle">刮開其中一個刮刮樂後，再點選相同的禮物開始挑戰</p>
 
@@ -155,7 +178,7 @@
 
       <!-- 全部解鎖或全破時的慶祝橫幅 (畫面 G) -->
       <div id="celebration-banner" class="celebration-banner">
-        <div class="banner-title">🎉 天啊！妳把六份禮物全部解鎖了！</div>
+        <div class="banner-title">天啊！妳把六份禮物全部解鎖了！</div>
         <p class="banner-desc">太厲害啦！快來找我領取專屬獎品吧！</p>
         <button id="btn-open-secret-letter" class="btn btn-secret-letter" type="button">
           💌 拆開男友的壓軸秘密情書
@@ -333,7 +356,7 @@
           </div>
 
           <div id="voucher-pledge-text" class="voucher-pledge-text">
-            憑此券可隨時隨地向男友索取兌現，無使用期限，不可推託！
+            憑此券可隨時隨地向我索取兌現，無使用期限，不可推託！
           </div>
 
           <div class="voucher-meta-grid">
@@ -382,7 +405,7 @@
       <!-- 階段一：未拆封的典雅火漆封蠟信封 -->
       <div id="envelope-sealed-view" class="envelope-sealed-view">
         <div class="envelope-top-badge">SECRET LOVE LETTER</div>
-        <h3 id="letter-modal-title" class="envelope-title">給最親愛的寶貝</h3>
+        <h3 id="letter-modal-title" class="envelope-title">給最親愛的寶</h3>
         <p class="envelope-sub">當妳解鎖所有難題時，這封信才終於開啟...</p>
 
         <div class="envelope-graphic">
@@ -410,26 +433,36 @@
         <div class="parchment-scrollable-content">
           <p class="letter-para">親愛的𠦄：</p>
           <p class="letter-para">
-            恭喜妳！靠著專屬我們的小默契，把六份禮物全部都解鎖啦！看妳認真作答的模樣，真的超級可愛～
+            恭喜妳！靠著專屬我們的回憶，把六份禮物全部都解鎖啦！
           </p>
           <p class="letter-para">
-            回想在<b>員山公園</b>牽起妳手的那一天，直到今天已經默默走過了 <b>1,445 天</b>。這段日子裡，我們一起慶祝了四次週年、好多次生日，走過好多街角，也嚐遍了無數美食，也經歷了許多的喜怒哀樂。
+            回想在<b>員山公園</b>牽起妳手的那一天，直到今天已經默默走過了 <b>1,445 天</b>。這段日子裡，我們一起慶祝了四次週年、四次生日，走過好多街角，也嚐遍了無數美食，更經歷了許多喜怒哀樂。
           </p>
           <p class="letter-para">
             這次準備的小遊戲、刮刮樂，還有所有的禮物——每一份都是我想讓妳開心的心意。
           </p>
           <p class="letter-para">
-            我知道妳最近發生好多事，讓妳的心變得特別敏感、也特別容易掉眼淚。看著妳頂著那麼大的壓力，我真的無比心疼。有時候也會責怪自己能力不足，在妳最需要被關心、最脆弱的時候，沒能及時給予妳最完美的撫慰與回應。
+            我知道妳最近發生好多事，讓妳的心變得特別敏感、也特別容易掉眼淚。看著妳頂著那麼大的壓力，我真的無比心疼。有時候我也會責怪自己能力不足，在妳最需要關心、最脆弱的時候，沒能及時給予最完美的撫慰與回應。就如同背景音樂：「<b>(G)I-DLE
+              的《Escape》</b>」裡唱的那樣，當這個世界讓妳感到窒息與疲憊時，我隨時都準備好牽起妳的手，帶妳逃離所有的不安與黑夜。
           </p>
           <p class="letter-para">
-            看著妳經歷這些考驗，反而讓我更加堅定——我要更努力地成長，成為一個能為妳擋風遮雨的人。我想做妳隨時可以依靠的後盾，做妳最堅固的底氣，不再讓妳受任何委屈，讓妳能永遠做回那個每天開心、滿載正能量的女孩。
+            看著妳經歷這些考驗，反而讓我更加堅定——我要更努力地成長，成為那個能為妳擋風遮雨的人。我想做妳隨時可以依靠的後盾，做妳最堅固的底氣與避風港，不再讓妳受任何委屈，讓妳能永遠做回那個每天開心、滿滿正能量的女孩。
           </p>
           <p class="letter-para">
-            「願妳歷經歲月波折，依然有人為妳抵禦風霜；願妳在每個需要溫暖的時刻，都能在我懷裡找到答案。」每一次的考驗，都會讓妳成長得更加堅韌。當妳感到挫折、或是覺得自己快撐不下去的時候，記得在內心對自己喊話——我是最棒的，而我永遠都相信妳。我會一直在這裡，見證妳的所有堅強與美好。
+            「願妳歷經歲月波折，依然有人為妳抵禦風霜；願妳在每個需要溫暖的時刻，都能在我懷裡找到答案。」每一次的考驗，都會讓妳成長得更加堅韌。當妳感到挫折、或是覺得自己快撐不下去的時候，記得在內心對自己喊話——妳是最棒的，而我永遠都相信妳。只要妳轉過身，我會一直在這裡，見證妳的所有堅強與美好。
           </p>
           <p class="letter-para">
             謝謝妳一直以來給我的溫柔與陪伴。未來的每一天，我依然會當妳最堅強的依靠，陪妳走過每一次喜怒哀樂，繼續把妳寵得像全世界最幸福的公主。
           </p>
+
+          <!-- 放在信封最後面的專屬紀念相片 (拍立得風格) -->
+          <div class="letter-polaroid-frame">
+            <div class="letter-polaroid-inner">
+              <img src="we.jpg" alt="專屬我們的珍貴回憶" class="letter-polaroid-img" loading="lazy">
+            </div>
+            <div class="letter-polaroid-caption">走過 1,445 天的美好時光 ♡</div>
+          </div>
+
           <div class="letter-sign-off">
             <p>永遠愛妳的男友 ♡</p>
             <p class="letter-date">2026 年·愛妳一生一世</p>

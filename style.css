@@ -37,6 +37,7 @@
   --radius-pill: 999px;
 
   --font-family-base: "Huninn", "Zen Maru Gothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-family-handwriting: "ChenYuluoyan", "chenyuluoyan-thin", "Klee One", "Kaiti TC", "楷體-繁", "STKaiti", "華文楷體", "BiauKai", "標楷體", "DFKai-SB", "KaiTi", "楷体", "Caveat", "Zen Maru Gothic", cursive, sans-serif;
 }
 
 /* 基礎重設 */
@@ -101,6 +102,122 @@ body {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   手機聲音提示通知橫幅 (Sound Notice Banner)
+   -------------------------------------------------------------------------- */
+.sound-notice-banner {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-140%);
+  width: calc(100% - 28px);
+  max-width: 440px;
+  background: linear-gradient(135deg, #FFF8E7 0%, #FFFDF8 100%);
+  border: 2.5px solid var(--color-coral-pink);
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(242, 164, 151, 0.35), 4px 4px 0px var(--color-coral-pink);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 9999;
+  cursor: pointer;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sound-notice-banner.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  animation: noticeBounce 2.5s ease-in-out 0.8s infinite;
+}
+
+@keyframes noticeBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
+}
+
+.sound-notice-icon-wrap {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  background-color: var(--color-yamabuki-yellow);
+  border: 2px solid var(--color-sumi-gray);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  box-shadow: 2px 2px 0px var(--color-sumi-gray);
+}
+
+.sound-notice-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-coral-pink);
+  animation: soundPulse 1.8s infinite ease-out;
+  opacity: 0.6;
+}
+
+@keyframes soundPulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.sound-notice-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.sound-notice-title {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: var(--color-coral-pink);
+  letter-spacing: 0.5px;
+}
+
+.sound-notice-desc {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-sumi-gray);
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.sound-notice-desc strong {
+  color: #D44E38;
+  font-weight: 900;
+  background: #FFF0EE;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.sound-notice-close {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  color: #8C867F;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.sound-notice-close:hover {
+  color: var(--color-sumi-gray);
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 /* 背景音樂控制按鈕（位於 .app-container 內部，保證在任何螢幕尺寸下都在框框內） */
@@ -1863,7 +1980,7 @@ body {
   50% { transform: translateY(-4px); }
 }
 
-/* 階段二：展開的羊皮紙長篇信件 */
+/* 階段二：展開的復古手寫羊皮紙長篇信件 */
 .parchment-letter-view {
   display: flex;
   flex-direction: column;
@@ -1875,6 +1992,32 @@ body {
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
+/* 徹底防止 iOS / Safari 自動將日期與數字判定為連結並顯示為藍色字體 */
+.secret-letter-card a,
+.parchment-letter-view a,
+.parchment-header a,
+.parchment-tag a,
+.parchment-scrollable-content a,
+.letter-para a,
+.letter-sign-off a,
+a[x-apple-data-detectors] {
+  color: inherit !important;
+  text-decoration: none !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  pointer-events: none !important;
+  cursor: text !important;
+}
+
+.parchment-header,
+.parchment-scrollable-content,
+.parchment-actions {
+  position: relative;
+  z-index: 1;
+}
+
 .parchment-header {
   text-align: center;
   margin-bottom: 12px;
@@ -1883,27 +2026,34 @@ body {
 }
 
 .parchment-tag {
-  font-size: 0.78rem;
+  font-family: var(--font-family-handwriting);
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 1.5px;
   color: var(--color-coral-pink);
 }
 
 .parchment-title {
-  font-size: 1.45rem;
+  font-family: var(--font-family-handwriting);
+  font-size: 1.58rem;
   font-weight: 900;
   color: var(--color-sumi-gray);
   margin-top: 4px;
 }
 
+/* 信封內容手寫體排版 */
 .parchment-scrollable-content {
-  max-height: 340px;
+  max-height: min(52vh, 400px);
   overflow-y: auto;
-  padding-right: 6px;
+  padding-right: 8px;
   margin-bottom: 16px;
-  line-height: 1.75;
-  color: #4A4441;
-  font-size: 0.98rem;
+  line-height: 1.95;
+  color: #38302B;
+  /* 手寫體排版：全面套用辰宇落雁體、Klee One 硬筆手寫體與系統手寫楷書 */
+  font-family: var(--font-family-handwriting);
+  font-size: 1.15rem;
+  letter-spacing: 0.6px;
+  font-weight: 600;
 }
 
 .parchment-scrollable-content::-webkit-scrollbar {
@@ -1916,26 +2066,77 @@ body {
 }
 
 .letter-para {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   text-align: justify;
+  font-family: var(--font-family-handwriting);
+  font-weight: 600;
 }
 
 .letter-para b {
   color: #D44E38;
-  font-weight: 800;
+  font-weight: 900;
+  font-family: var(--font-family-handwriting);
+}
+
+/* 放在信封最後面的專屬紀念拍立得相片卡 */
+.letter-polaroid-frame {
+  position: relative;
+  z-index: 1;
+  margin: 20px auto 16px;
+  max-width: 250px;
+  background: #FFFFFF;
+  padding: 10px 10px 14px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1.5px solid #EDE4D8;
+  transform: rotate(-1.5deg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+}
+
+.letter-polaroid-frame:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.letter-polaroid-inner {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #F4EFEA;
+}
+
+.letter-polaroid-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.letter-polaroid-caption {
+  font-family: var(--font-family-handwriting);
+  font-size: 1rem;
+  color: #6D635B;
+  margin-top: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .letter-sign-off {
+  font-family: var(--font-family-handwriting);
   text-align: right;
-  margin-top: 20px;
-  font-weight: 800;
-  color: var(--color-sumi-gray);
+  margin-top: 22px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #2E2722;
 }
 
 .letter-date {
-  font-size: 0.82rem;
-  color: #8C867F;
-  margin-top: 2px;
+  font-family: var(--font-family-handwriting);
+  font-size: 0.95rem;
+  color: #7D736A;
+  margin-top: 4px;
 }
 
 /* --------------------------------------------------------------------------

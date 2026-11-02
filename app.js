@@ -25,15 +25,47 @@
     constructor() {
       this.audioCtx = null;
       this.enabled = localStorage.getItem(SOUND_KEY) !== "false";
-      this.bgmEnabled = localStorage.getItem(BGM_KEY) !== "false";
+      // 背景音樂每次開啟皆預設開啟，確保自動開播順暢
+      this.bgmEnabled = true;
+      localStorage.setItem(BGM_KEY, "true");
       this.bgmPlaying = false;
+      this.bgmStarting = false; // 防止 play() Promise 非同步空窗期間重複觸發
       this.hasCustomBgm = false;
       this.bgmAudioEl = document.getElementById("bgm-audio");
+      if (this.bgmAudioEl) {
+        this.bgmAudioEl.loop = true;
+        this.bgmAudioEl.addEventListener("canplaythrough", () => {
+          this.hasCustomBgm = true;
+        });
+        this.bgmAudioEl.addEventListener("error", () => {
+          this.hasCustomBgm = false;
+        });
+        // loop=true 應自動循環；ended 僅作 iOS Safari 雙重保險，不重置任何旗標
+        this.bgmAudioEl.addEventListener("ended", () => {
+          this.bgmAudioEl.currentTime = 0;
+          this.bgmAudioEl.play().catch(() => {});
+        });
+
+        // 核心修復：偵測非使用者主動觸發的 pause（系統通知音、螢幕休眠、來電等）
+        // bgmPlaying===true 表示使用者沒有手動停止，這個 pause 是被系統打斷的，自動恢復
+        this.bgmAudioEl.addEventListener("pause", () => {
+          if (!this.bgmPlaying) return; // 使用者主動停止，不恢復
+          if (this._resumeTimer) clearTimeout(this._resumeTimer);
+          // 延遲 800ms 後嘗試恢復（等待系統音結束、iOS 解鎖動畫完成）
+          this._resumeTimer = setTimeout(() => {
+            if (this.bgmPlaying && this.bgmAudioEl.paused) {
+              this.bgmAudioEl.play().catch(() => {});
+            }
+            this._resumeTimer = null;
+          }, 800);
+        });
+      }
       this.bgmTimer = null;
       this.bgmFilter = null;
       this.bgmMasterGain = null;
       this.isAudioElementPlaying = false;
       this.onBgmStatusChange = null;
+      this._resumeTimer = null; // 音訊恢復計時器，用於非同步重試
 
       // 日系溫馨八音盒旋律（C - Em - Am - G - F - Em - Dm - G，循環長度 12.8 秒）
       this.bgmLoopDuration = 12.8;
@@ -132,23 +164,33 @@
 
     // 啟動背景音樂（優先播放自訂音樂，若無則秒播純程式八音盒）
     startBGM() {
-      if (!this.bgmEnabled || this.bgmPlaying) return;
+      this.bgmEnabled = true;
+      // 雙重防護：bgmPlaying 或 bgmStarting 任一為 true 皆中止，避免非同步間隙重複呼叫
+      if (this.bgmPlaying || this.bgmStarting) return;
+      this.bgmStarting = true; // 立即鎖定，防止並發
       this.init();
 
       // 若有自訂音檔（例如放入 bgm.mp3），優先播放自訂音檔
       if (this.bgmAudioEl) {
-        this.bgmAudioEl.volume = 0.35;
+        this.bgmAudioEl.volume = 0.4;
         const playPromise = this.bgmAudioEl.play();
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
               this.isAudioElementPlaying = true;
               this.bgmPlaying = true;
+              this.bgmStarting = false;
               if (this.onBgmStatusChange) this.onBgmStatusChange(true);
             })
-            .catch(() => {
-              // 若自訂音檔不存在（404）或無法載入，無縫切換為純程式 Web Audio 八音盒
+            .catch((err) => {
               this.isAudioElementPlaying = false;
+              this.bgmStarting = false;
+              // 若是因為使用者尚未與網頁互動而被瀏覽器阻擋自動播放 (NotAllowedError)，維持待播，留待首次觸控時啟動
+              if (err && err.name === "NotAllowedError") {
+                this.bgmPlaying = false;
+                return;
+              }
+              // 若自訂音檔不存在（404）或無法載入，無縫切換為純程式 Web Audio 八音盒
               this.startProceduralBgm();
             });
           return;
@@ -156,6 +198,7 @@
       }
 
       // 預設直接秒播純程式合成八音盒（0 毫秒延遲）
+      this.bgmStarting = false;
       this.startProceduralBgm();
     }
 
@@ -256,6 +299,11 @@
 
     stopBGM() {
       this.bgmPlaying = false;
+      // 清除自動恢復計時器，確保使用者主動停止後不被重新啟動
+      if (this._resumeTimer) {
+        clearTimeout(this._resumeTimer);
+        this._resumeTimer = null;
+      }
       if (this.bgmTimer) {
         clearInterval(this.bgmTimer);
         this.bgmTimer = null;
@@ -510,6 +558,7 @@
       });
       return {
         hasSeenIntro: false,
+        currentScreen: "screen-intro",
         hasPoppedSecretLetter: false,
         gifts: giftStates
       };
@@ -666,6 +715,9 @@
       // 首頁禮物盒戳戳樂彩蛋 (Feature 3)
       if (this.introGiftBoxWrap) {
         this.introGiftBoxWrap.addEventListener("click", () => {
+          if (!this.sound.bgmPlaying) {
+            this.sound.startBGM();
+          }
           this.triggerGiftBoxEasterEgg();
         });
       }
@@ -686,9 +738,12 @@
       if (this.btnDoneVoucher) this.btnDoneVoucher.addEventListener("click", closeVoucher);
 
       // 壓軸秘密情書 (Feature 4)
+      // letterOpen 旗標：信件開啟時，暫停全域 tryStartBgm 的觸發，避免 play() 打斷閱讀體驗
+      this._letterOpen = false;
       if (this.btnOpenSecretLetter) {
         this.btnOpenSecretLetter.addEventListener("click", () => {
           this.sound.playClick();
+          this._letterOpen = true;
           this.openSecretLetterModal();
         });
       }
@@ -699,10 +754,22 @@
       }
       const closeSecretLetter = () => {
         this.sound.playClick();
+        this._letterOpen = false;
         if (this.modalSecretLetter) this.modalSecretLetter.classList.remove("active");
       };
       if (this.btnCloseSecretLetter) this.btnCloseSecretLetter.addEventListener("click", closeSecretLetter);
       if (this.btnFinishLetter) this.btnFinishLetter.addEventListener("click", closeSecretLetter);
+
+      // 點擊卡片本體時阻止冒泡（防止事件傳遞到 document 觸發其他全域監聽）
+      const secretLetterCard = this.modalSecretLetter
+        ? this.modalSecretLetter.querySelector(".secret-letter-card")
+        : null;
+      if (secretLetterCard) {
+        secretLetterCard.addEventListener("click", (e) => { e.stopPropagation(); });
+        secretLetterCard.addEventListener("pointerdown", (e) => { e.stopPropagation(); });
+        // touchstart 需 passive:false 才能正確 stopPropagation
+        secretLetterCard.addEventListener("touchstart", (e) => { e.stopPropagation(); }, { passive: false });
+      }
 
       // 懸浮背景音樂開關
       if (this.btnMusicToggle) {
@@ -713,15 +780,38 @@
         });
       }
 
-      // 瀏覽器音訊政策：首次點擊或觸控頁面任何位置時，自動喚醒音訊並播放背景音樂
-      const autoStartBgmOnGesture = () => {
-        this.sound.init();
-        if (this.sound.bgmEnabled && !this.sound.bgmPlaying) {
+      // 瀏覽器音訊解鎖政策：首次於畫面任一處觸碰、點擊、滑動即刻開播背景音樂
+      // 條件：bgmPlaying、bgmStarting、isAudioElementPlaying 三者皆 false 才觸發
+      // 避免 play() Promise 非同步空窗期間重複觸發競爭，造成音訊衝突斷音
+      const tryStartBgm = () => {
+        // 信件閱讀中，不觸發播放，避免新的 play() 呼叫打斷閱讀體驗
+        if (this._letterOpen) return;
+        if (!this.sound.bgmPlaying && !this.sound.bgmStarting && !this.sound.isAudioElementPlaying) {
           this.sound.startBGM();
         }
       };
-      document.addEventListener("click", autoStartBgmOnGesture, { once: true });
-      document.addEventListener("touchstart", autoStartBgmOnGesture, { once: true });
+      const audioTriggerEvents = ["click", "touchstart", "touchend", "pointerdown"];
+      audioTriggerEvents.forEach((evt) => {
+        window.addEventListener(evt, tryStartBgm, { passive: true });
+        document.addEventListener(evt, tryStartBgm, { passive: true });
+      });
+
+      // 支援微信或 LINE 內建瀏覽器環境無障礙自動播放
+      document.addEventListener("WeixinJSBridgeReady", () => {
+        this.sound.startBGM();
+      }, false);
+
+      // 當手機切換回此分頁或喚醒螢幕時（visibilitychange），若背景音樂應播放卻處於暫停，自動補播放
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && this.sound.bgmEnabled && !this.sound.bgmPlaying) {
+          this.sound.startBGM();
+        } else if (!document.hidden && this.sound.bgmEnabled && this.sound.bgmAudioEl && this.sound.bgmAudioEl.paused && this.sound.bgmPlaying) {
+          this.sound.bgmAudioEl.play().catch(() => {});
+        }
+      });
+
+      // 初始化「打開手機聲音」提示橫幅事件
+      this.initSoundNoticeBanner();
 
       // 從總覽回到開場遊戲說明（畫面 A）
       if (this.btnBackToIntro) {
@@ -731,9 +821,12 @@
         });
       }
 
-      // 開場按鈕
+      // 開場按鈕（點擊進入尋寶時確保背景音樂已開播）
       if (this.btnStartHunt) {
         this.btnStartHunt.addEventListener("click", () => {
+          if (!this.sound.bgmPlaying) {
+            this.sound.startBGM();
+          }
           this.sound.playClick();
           this.state.hasSeenIntro = true;
           this.saveState();
@@ -856,6 +949,12 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
+      // 記憶目前所在畫面，避免休眠喚醒或音樂重播時被意外踢回主頁
+      if (this.state) {
+        this.state.currentScreen = screenId;
+        this.saveState();
+      }
+
       // 如果切換回總覽畫面，刷新狀態與進度
       if (screenId === "screen-collection") {
         this.renderCollection();
@@ -866,14 +965,89 @@
     initView() {
       // 註冊背景音樂狀態監聽
       this.sound.onBgmStatusChange = (isPlaying) => {
+        if (isPlaying) {
+          this.markSoundNoticePlaying();
+        }
         this.updateBgmButtonUI(isPlaying);
       };
+
+      // 剛進入頁面即刻嘗試啟動背景音樂
+      this.sound.startBGM();
+
       this.updateBgmButtonUI(this.sound.bgmEnabled && this.sound.bgmPlaying);
       this.updateSoundButtonUI(this.sound.enabled);
       this.renderCollection();
 
-      // 每次開啟遊戲或重新整理網頁時，預設展示開場與遊戲說明（畫面 A）
-      this.showScreen("screen-intro");
+      // 智能畫面狀態恢復：若先前已開始尋寶，維持在先前停留的畫面或禮物總覽，絕不擅自踢回開場主頁！
+      let targetScreen = "screen-intro";
+      if (this.state && this.state.hasSeenIntro) {
+        const rawKey = this.state.currentScreen ? this.state.currentScreen.replace("screen-", "") : "";
+        targetScreen = (this.state.currentScreen && this.screens[rawKey])
+          ? this.state.currentScreen
+          : "screen-collection";
+      }
+      this.showScreen(targetScreen);
+
+      // 無論在哪個畫面，進入時一律顯示「請開啟手機聲音」提醒，直到音樂開播才自動消失
+      this.showSoundNoticeBanner();
+    }
+
+    // 初始化聲音提示橫幅事件
+    initSoundNoticeBanner() {
+      const banner = document.getElementById("sound-notice-banner");
+      if (!banner) return;
+
+      const dismiss = () => {
+        banner.classList.remove("show");
+      };
+
+      const btnClose = document.getElementById("btn-sound-notice-close");
+      if (btnClose) {
+        btnClose.addEventListener("click", (e) => {
+          e.stopPropagation();
+          dismiss();
+        });
+      }
+
+      // 點擊橫幅任何位置，立即嘗試播放音樂並提示開播
+      banner.addEventListener("click", () => {
+        this.sound.init();
+        if (!this.sound.bgmPlaying) {
+          this.sound.startBGM();
+        }
+      });
+    }
+
+    // 當背景音樂成功開播時，橫幅給予正面回饋並淡出
+    markSoundNoticePlaying() {
+      const banner = document.getElementById("sound-notice-banner");
+      if (!banner) return;
+      const desc = banner.querySelector(".sound-notice-desc");
+      if (desc) {
+        desc.innerHTML = "🎶 專屬背景音樂已開播～盡情遊玩吧！";
+      }
+      setTimeout(() => {
+        banner.classList.remove("show");
+      }, 1500);
+    }
+
+    // 顯示聲音提示通知橫幅（無論在哪個畫面皆顯示，音樂開播後才自動消失）
+    showSoundNoticeBanner() {
+      const banner = document.getElementById("sound-notice-banner");
+      if (!banner) return;
+
+      // 若音樂已播，直接標記成功並快速淡出
+      if (this.sound.bgmPlaying) {
+        this.markSoundNoticePlaying();
+        return;
+      }
+
+      // 延遲 300ms 彈出，讓畫面先完成渲染
+      setTimeout(() => {
+        banner.classList.add("show");
+      }, 300);
+
+      // 不設自動消失計時器：由 markSoundNoticePlaying() 負責在音樂真正開播時淡出
     }
 
     // 渲染六份禮物卡片與統計狀態（規格書第 4.2、5、11.4 章）
@@ -972,7 +1146,7 @@
           this.celebrationBannerEl.classList.add("active");
           const titleEl = this.celebrationBannerEl.querySelector(".banner-title");
           const descEl = this.celebrationBannerEl.querySelector(".banner-desc");
-          if (titleEl) titleEl.textContent = "🎉 天啊！妳把六份禮物全部解鎖了！";
+          if (titleEl) titleEl.textContent = "天啊！妳把六份禮物全部解鎖了！";
           if (descEl) descEl.textContent = "太厲害啦！快來找我領取專屬獎品吧！";
         }
         if (this.btnOpenSecretLetter) {
