@@ -1207,7 +1207,7 @@ body {
 }
 
 .unlock-title {
-  font-size: 2.1rem;
+  font-size: 1.95rem; /* 原 2.1rem，縮小約 2px */
   font-weight: 800;
   color: var(--color-sumi-gray);
   margin-bottom: 12px;
@@ -2313,7 +2313,8 @@ a[x-apple-data-detectors] {
   }
 
   .unlock-title, .failed-title, .hint-title {
-    font-size: 1.65rem;
+    font-size: 1.5rem; /* 原 1.65rem (約 26.4px)，縮小約 2.4px 至 24px，避免「物！」單字落單折行 */
+    letter-spacing: -0.5px;
   }
 }
 
