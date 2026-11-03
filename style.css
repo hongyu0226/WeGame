@@ -644,24 +644,27 @@ body {
 
 /* 統計狀態條（已解鎖與已完成分開展示，嚴格符合規格書 11.4） */
 .stats-bar {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 520px;
+  margin: 0 auto 24px;
+  gap: 10px;
+  width: 100%;
 }
 
 .stat-chip {
   background-color: #FFFFFF;
   border: var(--border-thick);
   border-radius: var(--radius-btn);
-  padding: 10px 18px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 6px;
   box-shadow: var(--shadow-hard-sm);
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .stat-chip.stat-unlocked {
@@ -2201,28 +2204,35 @@ a[x-apple-data-detectors] {
   }
 
   .stats-bar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 18px;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 18px !important;
+    width: 100% !important;
   }
 
   .stat-chip {
-    padding: 8px 6px;
-    font-size: 0.82rem;
-    gap: 4px;
-    justify-content: center;
+    padding: 8px 4px !important;
+    font-size: 0.8rem !important;
+    gap: 4px !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    border: var(--border-medium) !important;
+    min-width: 0 !important;
+  }
+
+  .stat-chip span {
     white-space: nowrap;
-    border: var(--border-medium);
   }
 
   .stat-chip .chip-icon {
-    font-size: 1rem;
+    font-size: 0.95rem !important;
   }
 
   .stat-chip .chip-count {
-    padding: 2px 6px;
-    font-size: 0.8rem;
+    padding: 2px 6px !important;
+    font-size: 0.78rem !important;
+    flex-shrink: 0 !important;
   }
 
   /* 極窄螢幕調整：若小於 420px，改為單欄以保護字體與按鈕防溢出 */
