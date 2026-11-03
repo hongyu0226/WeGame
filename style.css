@@ -1152,12 +1152,19 @@ body {
 
 .hint-box-header {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   font-weight: 800;
   color: #8C6A0A;
   font-size: 1.05rem;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+#hint-target-name {
+  font-size: 0.95rem;
+  color: #A0780B;
+  font-weight: 700;
 }
 
 .hint-text {
@@ -1304,18 +1311,19 @@ body {
 
 .reveal-label {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   font-size: 0.95rem;
   font-weight: 800;
   color: #7D7772;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 #failed-target-name {
-  color: var(--color-sumi-gray);
-  font-weight: 800;
+  color: #948E88;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .reveal-answer-text {
@@ -2199,7 +2207,7 @@ a[x-apple-data-detectors] {
   }
 
   .gift-card {
-    padding: 16px 12px;
+    padding: 16px 8px;
     min-height: 250px;
   }
 
@@ -2210,7 +2218,18 @@ a[x-apple-data-detectors] {
   }
 
   .gift-name {
-    font-size: 1.15rem;
+    font-size: 1.02rem; /* 原 1.15rem (約 18.4px)，縮小 2px 至約 16.3px */
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .gift-status-btn {
+    font-size: 0.88rem; /* 原 1rem (16px)，縮小 2px 至 14px，讓「已解鎖（查看心意券）」完整單行顯示 */
+    padding: 9px 4px;
+    letter-spacing: -0.4px;
+    white-space: nowrap;
   }
 
   .intro-card {
