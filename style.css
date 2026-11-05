@@ -2151,6 +2151,257 @@ a[x-apple-data-detectors] {
 }
 
 /* --------------------------------------------------------------------------
+   階段三：公主專屬・男友滿意度考核表 (Feature 5)
+   -------------------------------------------------------------------------- */
+.survey-letter-view {
+  display: flex;
+  flex-direction: column;
+  animation: unfoldLetter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.survey-header {
+  text-align: center;
+  margin-bottom: 12px;
+  border-bottom: 2px dashed #E2D5C3;
+  padding-bottom: 10px;
+}
+
+.survey-tag {
+  display: inline-block;
+  background-color: #FFF3D6;
+  border: 1.5px solid var(--color-yamabuki-yellow-dark);
+  color: #8C6A15;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 6px;
+}
+
+.survey-title {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--color-sumi-gray);
+  margin-bottom: 4px;
+}
+
+.survey-subtitle {
+  font-size: 0.88rem;
+  color: #7B756F;
+  font-weight: 700;
+}
+
+.survey-scrollable-content {
+  max-height: min(48vh, 380px);
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-bottom: 14px;
+}
+
+.survey-scrollable-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.survey-scrollable-content::-webkit-scrollbar-thumb {
+  background-color: #D9CBB9;
+  border-radius: var(--radius-pill);
+}
+
+.survey-card-item {
+  background-color: #FFFFFF;
+  border: var(--border-medium);
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+  margin-bottom: 12px;
+  box-shadow: 2px 2px 0px rgba(62, 58, 57, 0.08);
+}
+
+.survey-q-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-sumi-gray);
+  margin-bottom: 10px;
+}
+
+.q-badge {
+  background-color: var(--color-coral-pink);
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+/* Q1 星星評分 */
+.survey-stars-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 6px 0 8px;
+}
+
+.survey-star {
+  font-size: 2.2rem;
+  color: #DDD4C8;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+  user-select: none;
+  line-height: 1;
+}
+
+.survey-star.active {
+  color: #FFAE19;
+  text-shadow: 0 2px 8px rgba(255, 174, 25, 0.4);
+}
+
+.survey-star:hover,
+.survey-star:active {
+  transform: scale(1.25);
+}
+
+.survey-star-tip {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #D44E38;
+  text-align: center;
+  background-color: #FFF0ED;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-top: 6px;
+  animation: pulseTip 2s infinite ease-in-out;
+}
+
+@keyframes pulseTip {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* Q2 & Q3 選項按鈕 */
+.survey-options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.survey-opt-btn {
+  background-color: #FAF7F2;
+  border: 1.5px solid #E5DCD0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-sumi-gray);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.survey-opt-btn:hover {
+  background-color: #FFF4F2;
+  border-color: var(--color-coral-pink);
+}
+
+.survey-opt-btn.active {
+  background-color: #FFF2F0;
+  border-color: var(--color-coral-pink);
+  border-width: 2px;
+  color: #D44E38;
+  font-weight: 800;
+  box-shadow: 2px 2px 0px rgba(212, 78, 56, 0.2);
+}
+
+.opt-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #E2D9CC;
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 900;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.survey-opt-btn.active .opt-check {
+  background-color: var(--color-coral-pink);
+}
+
+/* 考核結果鋼印大印章 */
+.survey-stamp-result {
+  text-align: center;
+  margin: 16px 0 8px;
+  animation: stampDropIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes stampDropIn {
+  0% { transform: scale(2.2) rotate(-15deg); opacity: 0; }
+  100% { transform: scale(1) rotate(-5deg); opacity: 1; }
+}
+
+.evaluation-stamp-box {
+  display: inline-block;
+  border: 3.5px dashed #D44E38;
+  border-radius: 18px;
+  padding: 10px 24px;
+  background-color: #FFF7F5;
+  color: #D44E38;
+  box-shadow: 0 4px 14px rgba(212, 78, 56, 0.15);
+}
+
+.stamp-star-row {
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+}
+
+.stamp-main-text {
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  line-height: 1.2;
+}
+
+.stamp-sub-text {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+
+.stamp-date-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+.stamp-congrats-text {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-sumi-gray);
+  line-height: 1.5;
+}
+
+.survey-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
    響應式設計（規格書第 8 章）
    - 手機：小於 600px
    - 平板：600–1023px

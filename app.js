@@ -403,6 +403,10 @@
       setTimeout(() => this.unduckBGM(), 2000);
     }
 
+    playCheer() {
+      this.playFanfare();
+    }
+
     // 可愛戳戳樂啵啵彈跳音效 (Feature 3)
     playPop() {
       if (!this.enabled) return;
@@ -703,6 +707,17 @@
       this.waxSealButton = document.getElementById("wax-seal-button");
       this.envelopeSealedView = document.getElementById("envelope-sealed-view");
       this.parchmentLetterView = document.getElementById("parchment-letter-view");
+
+      // 階段三：滿意度考核表節點 (Feature 5)
+      this.surveyLetterView = document.getElementById("survey-letter-view");
+      this.btnSubmitSurvey = document.getElementById("btn-submit-survey");
+      this.btnSurveyFinishClose = document.getElementById("btn-survey-finish-close");
+      this.surveyStarsGroup = document.getElementById("survey-stars-group");
+      this.surveyStarTip = document.getElementById("survey-star-tip");
+      this.surveyRenewOptions = document.getElementById("survey-renew-options");
+      this.surveyRewardOptions = document.getElementById("survey-reward-options");
+      this.surveyStampResult = document.getElementById("survey-stamp-result");
+      this.surveyScrollableContent = document.getElementById("survey-scrollable-content");
     }
 
     // 綁定事件監聽
@@ -758,7 +773,120 @@
         if (this.modalSecretLetter) this.modalSecretLetter.classList.remove("active");
       };
       if (this.btnCloseSecretLetter) this.btnCloseSecretLetter.addEventListener("click", closeSecretLetter);
-      if (this.btnFinishLetter) this.btnFinishLetter.addEventListener("click", closeSecretLetter);
+      
+      // 從展開信紙切換至階段三：滿意度考核表
+      if (this.btnFinishLetter) {
+        this.btnFinishLetter.addEventListener("click", () => {
+          this.sound.playLetterOpen();
+          this.confetti.burst();
+          if (this.parchmentLetterView) this.parchmentLetterView.style.display = "none";
+          if (this.surveyLetterView) this.surveyLetterView.style.display = "flex";
+          if (this.surveyScrollableContent) this.surveyScrollableContent.scrollTop = 0;
+        });
+      }
+
+      // 滿意度考核表：真實可選星星評分（1~5 顆星，每種星數都有專屬幽默反應）
+      if (this.surveyStarsGroup) {
+        const stars = Array.from(this.surveyStarsGroup.querySelectorAll(".survey-star"));
+        const starTips = {
+          1: "🥺 只有 1 顆星嗎？男友立刻蹲在角落畫圈圈求加分...",
+          2: "🥺 2 顆星... 男友表示會加倍努力伺候公主殿下！",
+          3: "😊 3 顆星及格！但男友的目標是讓妳每天都有滿分幸福！",
+          4: "🥰 4 顆星好評！剩下 1 顆星留給未來的每一天繼續加滿！",
+          5: "💖 哇！5 顆星滿分！全世界最幸福、最用心的男友就是我 ♡"
+        };
+
+        this.currentSurveyRating = 0;
+        const updateStars = (rating) => {
+          this.currentSurveyRating = rating;
+          stars.forEach((s, idx) => {
+            if (rating > 0 && idx < rating) {
+              s.classList.add("active");
+            } else {
+              s.classList.remove("active");
+            }
+          });
+          if (rating === 0) {
+            if (this.surveyStarTip) {
+              this.surveyStarTip.textContent = "👆 輕觸星星，為男友本次表現評分吧！";
+            }
+          } else if (this.surveyStarTip && starTips[rating]) {
+            this.surveyStarTip.textContent = starTips[rating];
+            this.surveyStarTip.style.animation = "none";
+            void this.surveyStarTip.offsetWidth;
+            this.surveyStarTip.style.animation = "pulseTip 0.4s ease";
+          }
+        };
+
+        // 一開始初始為空白未選狀態
+        updateStars(0);
+        this.resetSurveyStars = () => updateStars(0);
+
+        stars.forEach((star, index) => {
+          star.addEventListener("click", (e) => {
+            this.sound.playPop();
+            this.createTapParticles(e.clientX, e.clientY);
+            const rating = index + 1; // 1 ~ 5
+            updateStars(rating);
+          });
+        });
+      }
+
+      // 滿意度考核表：單選按鈕組綁定
+      const bindSurveyOptionGroup = (container) => {
+        if (!container) return;
+        const optBtns = container.querySelectorAll(".survey-opt-btn");
+        optBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            this.sound.playClick();
+            optBtns.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+          });
+        });
+      };
+      bindSurveyOptionGroup(this.surveyRenewOptions);
+      bindSurveyOptionGroup(this.surveyRewardOptions);
+
+      // 滿意度考核表：提交評價
+      if (this.btnSubmitSurvey) {
+        this.btnSubmitSurvey.addEventListener("click", () => {
+          this.sound.playFanfare();
+          this.confetti.burst();
+
+          if (this.surveyStampResult) {
+            this.surveyStampResult.style.display = "block";
+          }
+
+          if (this.surveyScrollableContent) {
+            setTimeout(() => {
+              this.surveyScrollableContent.scrollTo({
+                top: this.surveyScrollableContent.scrollHeight,
+                behavior: "smooth"
+              });
+            }, 80);
+          }
+
+          this.btnSubmitSurvey.style.display = "none";
+          if (this.btnSurveyFinishClose) {
+            this.btnSurveyFinishClose.style.display = "block";
+          }
+
+          if (this.state) {
+            this.state.hasCompletedSurvey = true;
+            this.saveState();
+          }
+        });
+      }
+
+      // 滿意度考核表：最終完成並關閉
+      if (this.btnSurveyFinishClose) {
+        this.btnSurveyFinishClose.addEventListener("click", () => {
+          this.sound.playClick();
+          this._letterOpen = false;
+          if (this.modalSecretLetter) this.modalSecretLetter.classList.remove("active");
+          this.showScreen("screen-collection");
+        });
+      }
 
       // 點擊卡片本體時阻止冒泡（防止事件傳遞到 document 觸發其他全域監聽）
       const secretLetterCard = this.modalSecretLetter
@@ -1473,6 +1601,11 @@
       // 重設至封蠟未拆封狀態
       if (this.envelopeSealedView) this.envelopeSealedView.style.display = "block";
       if (this.parchmentLetterView) this.parchmentLetterView.style.display = "none";
+      if (this.surveyLetterView) this.surveyLetterView.style.display = "none";
+      if (this.surveyStampResult) this.surveyStampResult.style.display = "none";
+      if (this.btnSubmitSurvey) this.btnSubmitSurvey.style.display = "block";
+      if (this.btnSurveyFinishClose) this.btnSurveyFinishClose.style.display = "none";
+      if (this.resetSurveyStars) this.resetSurveyStars();
 
       if (this.modalSecretLetter) {
         this.modalSecretLetter.classList.add("active");
@@ -1489,6 +1622,9 @@
       }
       if (this.parchmentLetterView) {
         this.parchmentLetterView.style.display = "flex";
+      }
+      if (this.surveyLetterView) {
+        this.surveyLetterView.style.display = "none";
       }
     }
   }

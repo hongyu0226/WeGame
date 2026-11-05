@@ -25,7 +25,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chenyuluoyan-thin@1.0.0/chenyuluoyan-thin.css">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261105a">
 </head>
 
 <body>
@@ -476,12 +476,101 @@
         </div>
       </div>
 
+      <!-- 階段三：公主專屬・男友滿意度考核表 (Feature 5) -->
+      <div id="survey-letter-view" class="survey-letter-view" style="display: none;">
+        <div class="survey-header">
+          <div class="survey-tag">OFFICIAL EVALUATION</div>
+          <h3 class="survey-title">✨ 公主專屬・男友考核表</h3>
+          <p class="survey-subtitle">恭喜通關全部挑戰！請為本次驚喜籌備給予最終考評：</p>
+        </div>
+
+        <div class="survey-scrollable-content" id="survey-scrollable-content">
+          <!-- Q1: 星級評分（強制滿分彩蛋） -->
+          <div class="survey-card-item">
+            <div class="survey-q-title">
+              <span class="q-badge">Q1</span>
+              <span>本次尋寶解鎖驚喜，滿意度評分：</span>
+            </div>
+            <div class="survey-stars-wrapper" id="survey-stars-group">
+              <span class="survey-star" data-star="1">★</span>
+              <span class="survey-star" data-star="2">★</span>
+              <span class="survey-star" data-star="3">★</span>
+              <span class="survey-star" data-star="4">★</span>
+              <span class="survey-star" data-star="5">★</span>
+            </div>
+            <div id="survey-star-tip" class="survey-star-tip">
+              👆 輕觸星星，為男友本次表現評分吧！
+            </div>
+          </div>
+
+          <!-- Q2: 是否願意終身續約 -->
+          <div class="survey-card-item">
+            <div class="survey-q-title">
+              <span class="q-badge">Q2</span>
+              <span>是否願意續約男友終身陪伴服務？</span>
+            </div>
+            <div class="survey-options-group" id="survey-renew-options">
+              <button type="button" class="survey-opt-btn active" data-opt="forever">
+                <span class="opt-check">✓</span> 毫不猶豫續約一輩子！
+              </button>
+              <button type="button" class="survey-opt-btn" data-opt="unconditional">
+                <span class="opt-check">✓</span> 無條件終身續約，不准解約！
+              </button>
+              <button type="button" class="survey-opt-btn" data-opt="generous">
+                <span class="opt-check">✓</span> 看在這麼用心的份上，准許續約！
+              </button>
+            </div>
+          </div>
+
+          <!-- Q3: 考核通過立即兌現獎勵 -->
+          <div class="survey-card-item">
+            <div class="survey-q-title">
+              <span class="q-badge">Q3</span>
+              <span>考核通過！請選擇現在想對我說或對我做的事情：</span>
+            </div>
+            <div class="survey-options-group" id="survey-reward-options">
+              <button type="button" class="survey-opt-btn active" data-opt="kiss">
+                <span class="opt-check">✓</span> 立刻索取一個深情大親吻！！
+              </button>
+              <button type="button" class="survey-opt-btn" data-opt="hug">
+                <span class="opt-check">✓</span> 抱緊處理！！
+              </button>
+              <button type="button" class="survey-opt-btn" data-opt="queen">
+                <span class="opt-check">✓</span> 對我說好聽的話！！
+              </button>
+            </div>
+          </div>
+
+          <!-- 考核通過大印章（送出後動畫蓋章） -->
+          <div id="survey-stamp-result" class="survey-stamp-result" style="display: none;">
+            <div class="evaluation-stamp-box">
+              <div class="evaluation-stamp-inner">
+                <div class="stamp-star-row">★ ★ ★ ★ ★</div>
+                <div class="stamp-main-text">考核特優</div>
+                <div class="stamp-sub-text">終身錄用・無可取代</div>
+                <div class="stamp-date-text">2026 認證合格</div>
+              </div>
+            </div>
+            <p class="stamp-congrats-text">考核正式通過！男友已收到公主的最高評價與終身合約 ♡</p>
+          </div>
+        </div>
+
+        <div class="survey-actions">
+          <button id="btn-submit-survey" class="btn btn-primary" type="button" style="width: 100%;">
+            💌 簽署考核表・送出評分
+          </button>
+          <button id="btn-survey-finish-close" class="btn btn-yellow" type="button" style="width: 100%; display: none;">
+            ✨ 完成！向男友領取專屬獎勵
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <!-- 引入題目資料與遊戲程式 -->
   <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=20261105c"></script>
 </body>
 
 </html>
